@@ -4,11 +4,13 @@
  */
 
 const path = require("path");
+const port = process.env.PORT || 3000;
+const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
 
 // Require the fastify framework and instantiate it
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
-  logger: false,
+  logger: true,
 });
 
 // ADD FAVORITES ARRAY VARIABLE FROM TODO HERE
