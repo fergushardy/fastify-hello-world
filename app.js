@@ -1,76 +1,198 @@
-const port = process.env.PORT || 3000;
-const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
+/**
+ * This is the main Node.js server script for your project
+ * Check out the two endpoints this back-end API provides in fastify.get and fastify.post below
+ */
 
-const fastify = require('fastify')({
-  logger: true
-})
+const path = require("path");
 
-fastify.get('/', function (request, reply) {
-  reply.type('text/html').send(html)
-})
+// Require the fastify framework and instantiate it
+const fastify = require("fastify")({
+  // Set this to true for detailed logging:
+  logger: false,
+});
 
-fastify.listen({host: host, port: port }, function (err, address) {
-  if (err) {
-    fastify.log.error(err)
-    process.exit(1)
+// ADD FAVORITES ARRAY VARIABLE FROM TODO HERE
+
+// Setup our static files
+fastify.register(require("@fastify/static"), {
+  root: path.join(__dirname, "public"),
+  prefix: "/", // optional: default '/'
+});
+
+// Formbody lets us parse incoming forms
+fastify.register(require("@fastify/formbody"));
+
+// View is a templating manager for fastify
+fastify.register(require("@fastify/view"), {
+  engine: {
+    handlebars: require("handlebars"),
+  },
+});
+
+// Register the fastify-cors plugin
+fastify.register(require("@fastify/cors"), {
+  origin: ["https://www.mist.com.au"], // Set this to the allowed origin or origins (e.g., 'http://example.com')
+  allowedHeaders:
+    "Content-Type, Authorization, Origin,X-Requested-With,Accept,Referrer-Policy,endpturl",
+  methods: "GET,PUT,POST,OPTIONS",
+  credentials: true, //mgk to check
+});
+
+const fetch = require("node-fetch");
+
+// Load and parse SEO data
+const seo = require("./src/seo.json");
+if (seo.url === "glitch-default") {
+  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
+}
+
+/**
+ * Our home page route
+ *
+ * Returns src/pages/index.hbs with data built into it
+ */
+fastify.get("/", function (request, reply) {
+  // params is an object we'll pass to our handlebars template
+  let params = { seo: seo };
+
+  // If someone clicked the option for a random color it'll be passed in the querystring
+  if (request.query.randomize) {
+    // We need to load our color data file, pick one at random, and add it to the params
+    const colors = require("./src/colors.json");
+    const allColors = Object.keys(colors);
+    let currentColor = allColors[(allColors.length * Math.random()) << 0];
+
+    // Add the color properties to the params object
+    params = {
+      color: colors[currentColor],
+      colorError: null,
+      seo: seo,
+    };
   }
-})
 
-const html = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello from Render!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script>
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-          disableForReducedMotion: true
-        });
-      }, 500);
-    </script>
-    <style>
-      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
-      @font-face {
-        font-family: "neo-sans";
-        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-        font-style: normal;
-        font-weight: 700;
-      }
-      html {
-        font-family: neo-sans;
-        font-weight: 700;
-        font-size: calc(62rem / 16);
-      }
-      body {
-        background: white;
-      }
-      section {
-        border-radius: 1em;
-        padding: 1em;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin-right: -50%;
-        transform: translate(-50%, -50%);
-      }
-      section a {
-        text-decoration:none;
-        color: #1C151A;
-      }
-      section a:hover {
-        text-decoration:none;
-        color: #605A5C;
-      }
-    </style>
-  </head>
-  <body>
-    <section>
-      <a href="https://render.com/docs/deploy-node-fastify-app">Hello from Render using Fastify!</a>
-    </section>
-  </body>
-</html>
-`
+  // The Handlebars code will be able to access the parameter values and build them into the page
+  return reply.view("/src/pages/index.hbs", params);
+});
+
+//eg https://fantastic-mirage-desert.glitch.me/proxy?endpturl=https://linkgroup.com
+//fastify.get("/proxy/:endpturl", function (request, reply) {
+//  const { endpturl } = request.params;
+//  console.log(endpturl);
+//});
+// eg /proxy/https%3A%2F%2Fsmh.com.au
+fastify.get("/proxy", async (request, reply) => {
+  var authorizationHeader = request.headers.authorization;
+  var endpturl = request.headers["endpturl"];
+  //Ocp-Apim-Subscription-Key
+  var ocpapimsub = request.headers["ocpapimsub"];
+  console.log(endpturl);
+  console.log(ocpapimsub);
+
+  //mk test
+  //authorizationHeader = 'Bearer eyJraWQiOiI3SGJscDZIdk40aThVb3dmc2VlZEI5WXg4bnpOQkktNk1pakpHOTBUSUlZIiwiYWxnIjoiUlMyNTYifQ.eyJ2ZXIiOjEsImp0aSI6IkFULk5za0t5bG54U3Y3Qk5BaEtmTHNnc2M4Mlc1RVVFUzBmQndTY3I3VU1RVm8iLCJpc3MiOiJodHRwczovL2xpbmtncm91cC11YXQtbWN4LWhvc3RwbHVzLm9rdGFwcmV2aWV3LmNvbS9vYXV0aDIvZGVmYXVsdCIsImF1ZCI6ImFwaTovL2RlZmF1bHQiLCJpYXQiOjE2OTkxNDQyMjEsImV4cCI6MTY5OTE0NzgyMSwiY2lkIjoiMG9hd2JlN3IwdzZIT1p0WHowaDciLCJ1aWQiOiIwMHUxdnhkM2hxY3FDRzQwQzBoOCIsInNjcCI6WyJvcGVuaWQiLCJlbWFpbCIsImdyb3VwcyIsImxpbmtncm91cC5mdW5kYWRtaW4ubWVtYmVyc2VydmljZS5hcGkiLCJtY3giLCJvcGFhLndpZGdldCIsInJpbVdpZGdldEFQSSIsInByb2ZpbGUiLCJsaW5rZ3JvdXAuZnVuZGFkbWluLnBsYW5zZXJ2aWNlLmFwaSJdLCJhdXRoX3RpbWUiOjE2OTkxNDQyMDUsInN1YiI6IjgzMjE3MTIxMCIsImdyb3VwcyI6WyJtY3guZnVuZC5tZW1iZXIiLCJtY3guZnVuZC5tZW1iZXIudGVzdGdyb3Vwd2hpbGVNRkFvcmdkaXNhYmxlZCIsIkV2ZXJ5b25lIl0sImZ1bmRfY29kZSI6IkhPU1RQTFVTIn0.GArgcZIhtcP7cQkluftPjtn-bQpx3uNWfbozC074gqAGHeDiFsFEW3SS2lblcsAE-wBkwEn311HQqW7KzRwwugmCMKL3v5dvSCWjKTZ14OcG32uova03hl2Fai3qWdRcWe-xHcWL_ePPe1U-SFTL9ciMNoiFzHzgp-v04A6-BL8JVI1EajlIJGNgR1cUxW_Tum9N8uSnSM8EpEC5B77_jXWRqx6xlVByMDEABscO2kRDb9mN8mNzciBPywtXarUsrNJb_pkDyD4Mr-9zzj0YrURfQWNg6WmmSi-D3IY-9JUrrGUnWxi8871BsJAQ7-RMeKp-VjiuJGrmgpbIqBASzw';
+  //endpturl = 'https://api-test.linkgroup.com/uat1/rss/mcx/web/dashboard/memberdetails/HC/members/832171210?isBenefitAccrualDateRequired=false';
+  //ocpapimsub = 'a77363b163634b9a9fedb8998b84ae1b'; //mgk to fix from mist yam
+
+  try {
+    // Specify the URL of the remote server
+    const remoteServerURL = endpturl;
+    var customHeaders;
+
+    // Define custom headers
+    if (ocpapimsub === undefined) {
+      customHeaders = {
+        Authorization: authorizationHeader,
+      };
+    } else {
+      customHeaders = {
+        Authorization: authorizationHeader,
+        "Ocp-Apim-Subscription-Key": ocpapimsub,
+      };
+    }
+
+    // Make an HTTP request using node-fetch with custom headers
+    const response = await fetch(remoteServerURL, {
+      method: "GET",
+      headers: customHeaders,
+    });
+
+    // Check if the response status code is OK (200)
+    if (response.status === 200) {
+      // Parse the JSON response
+      const data = await response.json();
+
+      // Send the JSON response to the client
+      reply.send(data);
+    } else {
+      // Handle non-200 status codes (e.g., error response)
+      reply
+        .status(response.status)
+        .send("Error: Request to remote server failed " + response.status);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    reply
+      .status(500)
+      .send("Error: Unable to fetch data from the remote server");
+  }
+
+  return { message: "This is the proxy route." };
+});
+
+/**
+ * Our POST route to handle and react to form submissions
+ *
+ * Accepts body data indicating the user choice
+ */
+fastify.post("/", function (request, reply) {
+  console.log(request.query);
+  console.log("mk was here");
+
+  // Build the params object to pass to the template
+  let params = { seo: seo };
+
+  // If the user submitted a color through the form it'll be passed here in the request body
+  let color = request.body.color;
+
+  // If it's not empty, let's try to find the color
+  if (color) {
+    // ADD CODE FROM TODO HERE TO SAVE SUBMITTED FAVORITES
+
+    // Load our color data file
+    const colors = require("./src/colors.json");
+
+    // Take our form submission, remove whitespace, and convert to lowercase
+    color = color.toLowerCase().replace(/\s/g, "");
+
+    // Now we see if that color is a key in our colors object
+    if (colors[color]) {
+      // Found one!
+      params = {
+        color: colors[color],
+        colorError: null,
+        seo: seo,
+      };
+    } else {
+      // No luck! Return the user value as the error property
+      params = {
+        colorError: request.body.color,
+        seo: seo,
+      };
+    }
+  }
+
+  // The Handlebars template will use the parameter values to update the page with the chosen color
+  return reply.view("/src/pages/index.hbs", params);
+});
+
+// Run the server and report out to the logs
+fastify.listen(
+  { port: process.env.PORT, host: "0.0.0.0" },
+  function (err, address) {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    console.log(`Your app is listening on ${address}`);
+  }
+);
