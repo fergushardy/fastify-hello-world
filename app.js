@@ -38,7 +38,7 @@ fastify.register(require("@fastify/cors"), {
   credentials: true, //mgk to check
 });
 
-const fetch = require("fastify-fetch");
+//const fetch = require("fastify-fetch");
 
 /**
  * Our home page route
