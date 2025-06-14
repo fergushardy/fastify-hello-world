@@ -111,7 +111,7 @@ fastify.get("/proxy", async (request, reply) => {
       .send("Error: Unable to fetch data from the remote server");
   }
 
-  return { message: "This is the proxy route." };
+  //return { message: "This is the proxy route." };
 });
 
 /**
