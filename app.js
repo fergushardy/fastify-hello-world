@@ -10,7 +10,7 @@ const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
 // Require the fastify framework and instantiate it
 const fastify = require("fastify")({
   // Set this to true for detailed logging:
-  logger: true,
+  logger: false,
 });
 
 // ADD FAVORITES ARRAY VARIABLE FROM TODO HERE
