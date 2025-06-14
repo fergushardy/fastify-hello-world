@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/render-examples/fastify-hello-world#readme",
   "dependencies": {
-    "fastify": "^4.17.0"
+    "fastify": "^5.3.0"
   },
   "engines": {
     "node": "18.x"
