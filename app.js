@@ -41,10 +41,10 @@ fastify.register(require("@fastify/cors"), {
 const fetch = require("node-fetch");
 
 // Load and parse SEO data
-const seo = require("./src/seo.json");
-if (seo.url === "glitch-default") {
-  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
-}
+//const seo = require("./src/seo.json");
+//if (seo.url === "glitch-default") {
+//  seo.url = `https://${process.env.PROJECT_DOMAIN}.glitch.me`;
+//}
 
 /**
  * Our home page route
