@@ -3,7 +3,6 @@
  * Check out the two endpoints this back-end API provides in fastify.get and fastify.post below
  */
 
-const path = require("path");
 const port = process.env.PORT || 3000;
 const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
 
