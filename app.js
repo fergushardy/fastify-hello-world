@@ -7,19 +7,18 @@ const path = require("path");
 const port = process.env.PORT || 3000;
 const host = ("RENDER" in process.env) ? `0.0.0.0` : `localhost`;
 
-// Require the fastify framework and instantiate it
-const fastify = require("fastify")({
-  // Set this to true for detailed logging:
-  logger: false,
-});
+const fastify = require('fastify')({logger: true})
+const path = require('node:path')
 
-// ADD FAVORITES ARRAY VARIABLE FROM TODO HERE
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/', // optional: default '/'
+  constraints: { host: 'example.com' } // optional: default {}
+})
 
-// Setup our static files
-fastify.register(require("@fastify/static"), {
-  root: path.join(__dirname, "public"),
-  prefix: "/", // optional: default '/'
-});
+fastify.get('/another/path', function (req, reply) {
+  reply.sendFile('myHtml.html') // serving path.join(__dirname, 'public', 'myHtml.html') directly
+})
 
 // Formbody lets us parse incoming forms
 fastify.register(require("@fastify/formbody"));
