@@ -128,6 +128,7 @@ fastify.post("/", function (request, reply) {
 
 fastify.post("/proxy", function (request, reply) {
   console.log(request.query);
+  console.log(request.body);
   console.log("post /proxy");
 
   return { message: "This is the root route." };
