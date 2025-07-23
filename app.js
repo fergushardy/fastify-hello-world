@@ -31,7 +31,7 @@ fastify.register(require("@fastify/view"), {
 
 // Register the fastify-cors plugin
 fastify.register(require("@fastify/cors"), {
-  origin: ["https://www.mist.com.au","https://mist.com.au"], // Set this to the allowed origin or origins (e.g., 'http://example.com')
+  origin: ["https://www.mist.com.au","https://mist.com.au","linkgroup-customer.okta.com"], // Set this to the allowed origin or origins (e.g., 'http://example.com')
   allowedHeaders:
     "Content-Type, Authorization, Origin,X-Requested-With,Accept,Referrer-Policy,endpturl",
   methods: "GET,PUT,POST,OPTIONS",
